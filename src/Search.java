@@ -11,6 +11,15 @@ public class Search {
         
         visited.add(a);
         System.out.println(visited.contains(location));
+
+        char[][] maze = {
+            {'o', 'o', 'o', 'o', 'c', 'w', 'c', 'o'},
+            {'w', 'o', 'o', 'w', 'w', 'c', 'w', 'o'},
+            {'o', 'o', 'o', 'o', 'R', 'o', 'o', 'o'},
+            {'o', 'o', 'w', 'w', 'w', 'o', 'o', 'o'},
+            {'o', 'o', 'o', 'o', 'c', 'o', 'o', 'o'}
+        };
+        nearestCheese(maze);
         // System.out.println(visited.contains(b));
         // System.out.println(visited.contains(c));
 
@@ -46,9 +55,32 @@ public class Search {
      */
     public static int[] nearestCheese(char[][] maze) throws EscapedRatException, CrowdedMazeException, HungryRatException {
         
-        Queue<Character> queue = new LinkedList<>();
+        Location start = ratLocation(maze);
+
+        Set<Location> visited = new HashSet<>();
+        Queue<Location> queue = new ArrayDeque<>();
         
-        return null;
+        queue.offer(start);
+
+        while(!queue.isEmpty()){
+            Location cur = queue.remove();
+            
+            if(visited.add(cur)){
+                if(maze[cur.row()][cur.column()] == 'c'){
+                    System.out.println(new int[]{cur.row(), cur.column()});
+                    return new int[]{cur.row(), cur.column()};
+                }
+                
+                List<Location> neighbors = new ArrayList<>();
+
+                for(Location n : neighbors){
+                    if(maze[n.row()][n.column()] != 'W'){
+                        queue.offer(n);
+                    }
+                }
+            }
+        }
+        throw new HungryRatException();
     }
 
 
@@ -90,7 +122,7 @@ public class Search {
      * @param maze
      * @return
      */
-    public Location ratLocation(char[][] maze){
+    public static Location ratLocation(char[][] maze){
         Location location = null;
 
         for(int r = 0; r <maze.length; r++){
