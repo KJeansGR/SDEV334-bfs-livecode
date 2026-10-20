@@ -4,27 +4,35 @@ public class Search {
 
     public static void main(String[] args){
                 
-        Set<Location> visited = new HashSet<>();
+        Set<Location> hasBeenQueued = new HashSet<>();
 
         Location a = new Location(7,8);
         Location location = new Location(7,8);
         
-        visited.add(a);
-        System.out.println(visited.contains(location));
+        hasBeenQueued.add(a);
+        System.out.println(hasBeenQueued.contains(location));
 
-        char[][] maze = {
+        char[][] maze1 = {
             {'o', 'o', 'o', 'o', 'c', 'w', 'c', 'o'},
             {'w', 'o', 'o', 'w', 'w', 'c', 'w', 'o'},
-            {'o', 'o', 'o', 'o', 'R', 'o', 'o', 'o'},
+            {'o', 'o', 'o', 'o', 'R', 'w', 'o', 'o'},
             {'o', 'o', 'w', 'w', 'w', 'o', 'o', 'o'},
             {'o', 'o', 'o', 'o', 'c', 'o', 'o', 'o'}
         };
-        nearestCheese(maze);
-        // System.out.println(visited.contains(b));
-        // System.out.println(visited.contains(c));
+        char[][] maze2 = {
+            {'o', 'o', 'o', 'o', 'c', 'w', 'c', 'o'},
+            {'w', 'o', 'o', 'w', 'w', 'c', 'w', 'o'},
+            {'o', 'o', 'o', 'o', 'R', 'w', 'o', 'o'},
+            {'o', 'o', 'w', 'w', 'w', 'o', 'o', 'o'},
+            {'o', 'o', 'o', 'o', 'c', 'o', 'o', 'o'}
+        };
+        nearestCheese(maze1);
+        // System.out.println(hasBeenQueued.contains(b));
+        // System.out.println(hasBeenQueued.contains(c));
 
     }
      /**
+     * TODO: FIX COMMENTS TO SHOW RETURN IS NOW A LIST
      * Finds the location of the nearest reachable cheese from the rat's position.
      * Returns a 2-element int array: [row, col] of the closest 'c'. If there are multiple
      * cheeses that are tied for the same shortest distance to reach, return
@@ -53,32 +61,46 @@ public class Search {
      * @throws CrowdedMazeException if there is more than one rat in the maze
      * @throws HungryRatException if there is no reachable cheese
      */
-    public static int[] nearestCheese(char[][] maze) throws EscapedRatException, CrowdedMazeException, HungryRatException {
+    public static List<Location> nearestCheese(char[][] maze) throws EscapedRatException, CrowdedMazeException, HungryRatException {
         
         Location start = ratLocation(maze);
+        Map<Location, Location> prevs = new HashMap<>();
 
-        Set<Location> visited = new HashSet<>();
+        Set<Location> hasBeenQueued = new HashSet<>();
         Queue<Location> queue = new ArrayDeque<>();
         
         queue.offer(start);
+        hasBeenQueued.add(start);
 
         while(!queue.isEmpty()){
             Location cur = queue.remove();
-            
-            if(visited.add(cur)){
-                if(maze[cur.row()][cur.column()] == 'c'){
-                    System.out.println(new int[]{cur.row(), cur.column()});
-                    return new int[]{cur.row(), cur.column()};
-                }
-                
-                List<Location> neighbors = new ArrayList<>();
+            // if( maze[cur.row()][cur.column()] != 'w'){
+            //     continue;
+            // }
 
-                for(Location n : neighbors){
-                    if(maze[n.row()][n.column()] != 'W'){
-                        queue.offer(n);
-                    }
+            if(maze[cur.row()][cur.column()] == 'c'){
+
+                Location step = cur;
+                List<Location> path = new LinkedList<>();
+
+                while(step != null){
+                    System.out.println(step);
+                    path.addFirst(step);
+                    step = prevs.get(step);
+                }
+                return path;
+
+            }
+            
+            List<Location> neighbors = possibleMoves(maze, cur);
+
+            for(Location n : neighbors){
+                if(hasBeenQueued.add(n)){
+                    prevs.putIfAbsent(n, cur);
+                    queue.offer(n);
                 }
             }
+            
         }
         throw new HungryRatException();
     }
@@ -101,15 +123,14 @@ public class Search {
 
         for(int[] move: moves){
             Location possibleMove = new Location(current.row()    + move[0],
-                                        current.column() + move[1]);
+                                                current.column() + move[1]);
 
-            if( maze[possibleMove.row()][possibleMove.column()] != 'W'&&
-                possibleMove.row() >= 0           &&
+            if( possibleMove.row() >= 0           &&
                 possibleMove.row() < maze.length &&
                 possibleMove.column() >= 0       &&
-                possibleMove.column() < maze[0].length){
-
-
+                possibleMove.column() < maze[0].length &&
+           maze[possibleMove.row()][possibleMove.column()] != 'w'
+            ){
                     possible.add(possibleMove);
             }
         }
